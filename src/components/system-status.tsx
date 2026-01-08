@@ -35,11 +35,16 @@ export default function SystemStatus({ extractedProperties, websocketConnected =
       // Check credentials
       const credResponse = await fetch('/api/credentials');
       const credentialsLoaded = credResponse.ok;
+      
+      console.log('🔍 Credentials API response:', credResponse.status, credResponse.ok);
 
       // Check PDF analysis (Anthropic)
       const pdfResponse = await fetch('/api/pdf-analysis?action=test');
       const pdfData = await pdfResponse.json();
       const anthropicConfigured = pdfData.success && pdfData.data?.apiKeyConfigured;
+      
+      console.log('🔍 PDF Analysis API response:', pdfData);
+      console.log('🎯 API Key Configured:', anthropicConfigured);
 
       setStatus(prev => ({
         ...prev,
@@ -47,6 +52,12 @@ export default function SystemStatus({ extractedProperties, websocketConnected =
         anthropicConfigured,
         playwrightReady: true // Assume ready if the app loaded
       }));
+      
+      console.log('📊 Final status:', {
+        credentialsLoaded,
+        anthropicConfigured,
+        playwrightReady: true
+      });
     } catch (error) {
       console.error('System status check failed:', error);
     }
