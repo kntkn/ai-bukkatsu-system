@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import LiveBrowserMirror from '@/components/live-browser-mirror';
 import PdfUploadAnalyzer from '@/components/pdf-upload-analyzer';
+import SystemStatus from '@/components/system-status';
 import { BrowserMirrorState } from '@/types/browser-mirror';
 import { PropertyInfo } from '@/types/pdf-analysis';
 
@@ -25,12 +26,10 @@ export default function Home() {
             </div>
             
             <div className="flex items-center space-x-4">
-              {systemState && (
-                <div className="text-right">
-                  <p className="text-white font-medium">System Status</p>
-                  <p className="text-sm text-gray-300 capitalize">{systemState.status}</p>
-                </div>
-              )}
+              <SystemStatus 
+                extractedProperties={extractedProperties.length}
+                websocketConnected={systemState?.status === 'running' || systemState?.status === 'connecting'}
+              />
             </div>
           </div>
         </div>
@@ -105,7 +104,10 @@ export default function Home() {
 
         {/* Live Browser Mirror */}
         <div className="bg-white/10 backdrop-blur-lg rounded-lg border border-white/20 p-6">
-          <LiveBrowserMirror onStateChange={setSystemState} />
+          <LiveBrowserMirror 
+            onStateChange={setSystemState}
+            extractedProperties={extractedProperties}
+          />
         </div>
 
         {/* Demo Instructions */}
@@ -139,13 +141,36 @@ export default function Home() {
           </div>
           
           <div className="mt-4 p-4 bg-gray-900/50 rounded-lg">
-            <h4 className="font-medium text-white mb-2">📋 デモ処理内容</h4>
-            <ul className="text-gray-300 text-sm space-y-1">
-              <li>• サンプル物件: 「アークヒルズ仙石山森タワー 3A」</li>
-              <li>• 対象サイト: ITANDI BB、いえらぶBB</li>
-              <li>• 処理時間: 約2-3分（サイトアクセス + 検索 + 結果分析）</li>
-              <li>• 出力: 空室状況、最終更新日時、情報ソース</li>
-            </ul>
+            <h4 className="font-medium text-white mb-2">📋 処理内容</h4>
+            {extractedProperties.length > 0 ? (
+              <div>
+                <p className="text-green-400 text-sm mb-2">
+                  ✅ PDF解析済み: {extractedProperties.length}件の物件が処理対象
+                </p>
+                <ul className="text-gray-300 text-sm space-y-1">
+                  {extractedProperties.slice(0, 3).map((prop, index) => (
+                    <li key={index}>
+                      • {prop.propertyName} {prop.roomNumber} ({prop.managementCompany})
+                    </li>
+                  ))}
+                  {extractedProperties.length > 3 && (
+                    <li className="text-gray-400">• ...他 {extractedProperties.length - 3}件</li>
+                  )}
+                </ul>
+                <div className="mt-2 pt-2 border-t border-gray-600">
+                  <p className="text-gray-300 text-sm">
+                    対象サイト: 認証情報に基づく自動選択 | 処理時間: 約{extractedProperties.length * 2}分
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <ul className="text-gray-300 text-sm space-y-1">
+                <li>• サンプル物件: 「アークヒルズ仙石山森タワー 3A」</li>
+                <li>• 対象サイト: ITANDI BB、いえらぶBB（デモモード）</li>
+                <li>• 処理時間: 約2-3分（サイトアクセス + 検索 + 結果分析）</li>
+                <li>• 出力: 空室状況、最終更新日時、情報ソース</li>
+              </ul>
+            )}
           </div>
         </div>
       </main>

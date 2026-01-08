@@ -2,12 +2,14 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { BrowserMirrorState, PropertySearchTask, WebSocketMessage } from '@/types/browser-mirror';
+import { PropertyInfo } from '@/types/pdf-analysis';
 
 interface LiveBrowserMirrorProps {
   onStateChange?: (state: BrowserMirrorState) => void;
+  extractedProperties?: PropertyInfo[];
 }
 
-export default function LiveBrowserMirror({ onStateChange }: LiveBrowserMirrorProps) {
+export default function LiveBrowserMirror({ onStateChange, extractedProperties }: LiveBrowserMirrorProps) {
   const [state, setState] = useState<BrowserMirrorState>({
     status: 'idle',
     currentSite: '',
@@ -76,32 +78,52 @@ export default function LiveBrowserMirror({ onStateChange }: LiveBrowserMirrorPr
     }
   };
 
+  const convertToPropertyTasks = (properties: PropertyInfo[]): PropertySearchTask[] => {
+    return properties.map((prop, index) => ({
+      id: `extracted-${index + 1}`,
+      propertyName: prop.propertyName,
+      roomNumber: prop.roomNumber,
+      address: prop.address,
+      managementCompany: prop.managementCompany,
+      status: 'pending' as const
+    }));
+  };
+
   const startDemo = () => {
     if (!wsRef.current || !isConnected) return;
 
-    // Demo properties for testing
-    const demoProperties: PropertySearchTask[] = [
-      {
-        id: '1',
-        propertyName: 'アークヒルズ仙石山森タワー',
-        roomNumber: '3A',
-        address: '東京都港区六本木1-9-10',
-        managementCompany: '森ビル',
-        status: 'pending'
-      },
-      {
-        id: '2', 
-        propertyName: 'パークコート赤坂檜町ザタワー',
-        roomNumber: '15B',
-        address: '東京都港区赤坂9-6-35',
-        managementCompany: '三井不動産',
-        status: 'pending'
-      }
-    ];
+    let propertiesToVerify: PropertySearchTask[];
+
+    if (extractedProperties && extractedProperties.length > 0) {
+      // Use extracted properties from PDF analysis
+      propertiesToVerify = convertToPropertyTasks(extractedProperties);
+      console.log(`🏠 Starting verification with ${propertiesToVerify.length} extracted properties`);
+    } else {
+      // Fallback to demo properties
+      propertiesToVerify = [
+        {
+          id: '1',
+          propertyName: 'アークヒルズ仙石山森タワー',
+          roomNumber: '3A',
+          address: '東京都港区六本木1-9-10',
+          managementCompany: '森ビル',
+          status: 'pending'
+        },
+        {
+          id: '2', 
+          propertyName: 'パークコート赤坂檜町ザタワー',
+          roomNumber: '15B',
+          address: '東京都港区赤坂9-6-35',
+          managementCompany: '三井不動産',
+          status: 'pending'
+        }
+      ];
+      console.log('📝 Using demo properties (no PDF data available)');
+    }
 
     wsRef.current.send(JSON.stringify({
       type: 'start_verification',
-      properties: demoProperties
+      properties: propertiesToVerify
     }));
   };
 
@@ -158,9 +180,19 @@ export default function LiveBrowserMirror({ onStateChange }: LiveBrowserMirrorPr
               <button
                 onClick={startDemo}
                 disabled={state.status === 'running'}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 rounded-lg transition-colors"
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 
+                  ${extractedProperties && extractedProperties.length > 0 
+                    ? 'bg-green-600 hover:bg-green-700 disabled:bg-gray-600' 
+                    : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600'
+                  }`}
               >
-                ▶️ Start Demo
+                <span>{extractedProperties && extractedProperties.length > 0 ? '🏠' : '▶️'}</span>
+                <span>
+                  {extractedProperties && extractedProperties.length > 0 
+                    ? `物確実行 (${extractedProperties.length}件)` 
+                    : 'Start Demo'
+                  }
+                </span>
               </button>
               <button
                 onClick={stopDemo}
