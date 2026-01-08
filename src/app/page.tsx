@@ -2,10 +2,13 @@
 
 import { useState } from 'react';
 import LiveBrowserMirror from '@/components/live-browser-mirror';
+import PdfUploadAnalyzer from '@/components/pdf-upload-analyzer';
 import { BrowserMirrorState } from '@/types/browser-mirror';
+import { PropertyInfo } from '@/types/pdf-analysis';
 
 export default function Home() {
   const [systemState, setSystemState] = useState<BrowserMirrorState | null>(null);
+  const [extractedProperties, setExtractedProperties] = useState<PropertyInfo[]>([]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
@@ -75,6 +78,31 @@ export default function Home() {
           </div>
         </div>
 
+        {/* PDF Upload & Analysis */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-lg border border-white/20 p-6 mb-8">
+          <PdfUploadAnalyzer 
+            onAnalysisComplete={(properties) => {
+              setExtractedProperties(properties);
+              console.log('📊 Properties extracted:', properties);
+            }}
+            onError={(error) => {
+              console.error('PDF Analysis Error:', error);
+              alert(`PDF解析エラー: ${error}`);
+            }}
+          />
+          
+          {extractedProperties.length > 0 && (
+            <div className="mt-6 p-4 bg-green-500/10 border border-green-400/30 rounded-lg">
+              <h4 className="text-green-400 font-semibold mb-2">
+                ✅ {extractedProperties.length}件の物件情報が抽出されました
+              </h4>
+              <p className="text-green-300 text-sm">
+                「Start Demo」ボタンをクリックして、これらの物件の空室確認を自動実行できます。
+              </p>
+            </div>
+          )}
+        </div>
+
         {/* Live Browser Mirror */}
         <div className="bg-white/10 backdrop-blur-lg rounded-lg border border-white/20 p-6">
           <LiveBrowserMirror onStateChange={setSystemState} />
@@ -86,19 +114,26 @@ export default function Home() {
             <div className="text-2xl">💡</div>
             <h3 className="text-lg font-semibold text-white">デモの実行方法</h3>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <h4 className="font-medium text-white mb-2">1. システム起動</h4>
+              <h4 className="font-medium text-white mb-2">1. PDF解析</h4>
               <p className="text-gray-300 text-sm mb-3">
-                「Start Demo」ボタンをクリックして、AIエージェントを起動します。
-                ブラウザが自動で開き、物確作業を開始します。
+                マイソク（PDF）をアップロードすると、Claude AIが物件情報を自動抽出。
+                複数ファイルの一括処理に対応しています。
               </p>
             </div>
             <div>
-              <h4 className="font-medium text-white mb-2">2. ライブ監視</h4>
+              <h4 className="font-medium text-white mb-2">2. AI物確実行</h4>
               <p className="text-gray-300 text-sm mb-3">
-                中央の画面でAIの操作をリアルタイム監視。
-                右側パネルでAIの思考プロセスを確認できます。
+                「Start Demo」で抽出された物件の空室確認を自動実行。
+                複数サイトを並行チェックします。
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-white mb-2">3. リアルタイム監視</h4>
+              <p className="text-gray-300 text-sm mb-3">
+                AIの作業画面をライブ配信。
+                思考プロセス・判断基準まで完全可視化します。
               </p>
             </div>
           </div>
