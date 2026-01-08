@@ -52,7 +52,18 @@ export class PdfAnalyzer {
       }
 
       // ローカル環境でのPDF解析
-      const pdfParse = require('pdf-parse');
+      let pdfParse;
+      try {
+        pdfParse = require('pdf-parse');
+        // CommonJS形式でexportされている場合の対応
+        if (typeof pdfParse !== 'function' && pdfParse.default) {
+          pdfParse = pdfParse.default;
+        }
+      } catch (error) {
+        console.error('Failed to load pdf-parse:', error);
+        throw new Error('PDF parsing library not available');
+      }
+      
       const dataBuffer = fs.readFileSync(filePath);
       const pdfData = await pdfParse(dataBuffer);
 
@@ -305,7 +316,18 @@ ${pdfText}
     }
 
     try {
-      const pdfParse = require('pdf-parse');
+      let pdfParse;
+      try {
+        pdfParse = require('pdf-parse');
+        // CommonJS形式でexportされている場合の対応
+        if (typeof pdfParse !== 'function' && pdfParse.default) {
+          pdfParse = pdfParse.default;
+        }
+      } catch (error) {
+        console.error('Failed to load pdf-parse:', error);
+        throw new Error('PDF parsing library not available');
+      }
+      
       const dataBuffer = fs.readFileSync(filePath);
       const pdfData = await pdfParse(dataBuffer);
       
