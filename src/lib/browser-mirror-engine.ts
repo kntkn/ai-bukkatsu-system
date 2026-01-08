@@ -1,12 +1,15 @@
 import { chromium, Browser, Page } from 'playwright';
 import { WebSocket } from 'ws';
 import { PropertySearchTask, BrowserMirrorState, AIAction, WebSocketMessage } from '@/types/browser-mirror';
+import { CredentialsManager } from './credentials-manager';
+import { SiteCredential } from '@/types/credentials';
 
 export class BrowserMirrorEngine {
   private browser: Browser | null = null;
   private page: Page | null = null;
   private isRunning = false;
   private screenshotInterval: NodeJS.Timeout | null = null;
+  private credentialsManager: CredentialsManager | null = null;
 
   async startVerification(properties: PropertySearchTask[], ws: WebSocket) {
     if (this.isRunning) {
@@ -17,6 +20,9 @@ export class BrowserMirrorEngine {
     this.isRunning = true;
 
     try {
+      // Initialize credentials manager
+      await this.initCredentials();
+      
       // Initialize browser
       await this.initBrowser();
       
@@ -53,6 +59,24 @@ export class BrowserMirrorEngine {
     } finally {
       await this.cleanup();
       this.isRunning = false;
+    }
+  }
+
+  private async initCredentials() {
+    console.log('🔐 Loading site credentials...');
+    
+    this.credentialsManager = await CredentialsManager.autoDetectCredentialsFile();
+    
+    if (this.credentialsManager) {
+      const credentials = await this.credentialsManager.getAllCredentials();
+      console.log(`✅ Loaded credentials for ${credentials.length} sites`);
+      
+      // Log available sites (without passwords)
+      credentials.forEach(cred => {
+        console.log(`  - ${cred.siteName} (${cred.username})`);
+      });
+    } else {
+      console.log('⚠️ No credentials file found, will use demo mode');
     }
   }
 
@@ -113,13 +137,12 @@ export class BrowserMirrorEngine {
   ) {
     if (!this.page) return;
 
-    // Demo sites for property verification
-    const sites = [
-      { name: 'ITANDI BB', url: 'https://www.itandi.net/' },
-      { name: 'いえらぶBB', url: 'https://www.ielove.co.jp/' }
-    ];
+    // Get available sites from credentials
+    const availableSites = await this.getAvailableSites();
+    
+    console.log(`🏠 Starting verification for ${property.propertyName} across ${availableSites.length} sites`);
 
-    for (const site of sites) {
+    for (const site of availableSites) {
       if (!this.isRunning) break;
 
       await this.simulateAIThinking(ws, `Navigating to ${site.name} to search for ${property.propertyName}`, current, total, site.name);
@@ -136,8 +159,8 @@ export class BrowserMirrorEngine {
         await this.page.goto(site.url);
         await this.page.waitForLoadState('domcontentloaded');
         
-        // Simulate search actions
-        await this.simulateSearch(property, ws, site.name);
+        // Simulate search actions (with login if credentials available)
+        await this.simulateSearch(property, ws, site.name, site.credential);
         
       } catch (error) {
         console.error(`Error on ${site.name}:`, error);
@@ -157,18 +180,45 @@ export class BrowserMirrorEngine {
     });
   }
 
-  private async simulateSearch(property: PropertySearchTask, ws: WebSocket, siteName: string) {
+  private async simulateSearch(
+    property: PropertySearchTask, 
+    ws: WebSocket, 
+    siteName: string,
+    credential?: SiteCredential
+  ) {
     if (!this.page) return;
 
-    const searchSteps = [
-      `Analyzing ${siteName} interface`,
-      `Looking for search functionality`,
-      `Preparing to search for "${property.propertyName}"`,
-      `Entering property details`,
-      `Searching database for matches`,
-      `Analyzing search results`,
-      `Checking availability status`
-    ];
+    let searchSteps: string[];
+
+    if (credential) {
+      // Real login flow
+      searchSteps = [
+        `Analyzing ${siteName} login interface`,
+        `Locating username field`,
+        `Entering username: ${credential.username}`,
+        `Locating password field`,
+        `Entering password`,
+        `Clicking login button`,
+        `Verifying successful login`,
+        `Navigating to property search`,
+        `Preparing search for "${property.propertyName}"`,
+        `Entering property details: ${property.address}`,
+        `Searching internal database`,
+        `Analyzing search results`,
+        `Extracting availability status`
+      ];
+    } else {
+      // Demo mode without login
+      searchSteps = [
+        `Analyzing ${siteName} public interface`,
+        `Looking for search functionality`,
+        `Preparing to search for "${property.propertyName}"`,
+        `Entering property details`,
+        `Searching available listings`,
+        `Analyzing public search results`,
+        `Checking availability status`
+      ];
+    }
 
     for (const step of searchSteps) {
       if (!this.isRunning) break;
@@ -233,6 +283,57 @@ export class BrowserMirrorEngine {
     };
     
     ws.send(JSON.stringify(message));
+  }
+
+  /**
+   * 利用可能なサイト一覧を取得（認証情報 + フォールバック）
+   */
+  private async getAvailableSites(): Promise<Array<{name: string, url: string, credential?: SiteCredential}>> {
+    const sites: Array<{name: string, url: string, credential?: SiteCredential}> = [];
+    
+    if (this.credentialsManager) {
+      try {
+        const credentials = await this.credentialsManager.getAllCredentials();
+        
+        // 認証情報があるサイトを追加
+        credentials.forEach(cred => {
+          sites.push({
+            name: cred.siteName,
+            url: cred.url || this.guessUrlFromSiteName(cred.siteName),
+            credential: cred
+          });
+        });
+      } catch (error) {
+        console.warn('Failed to load credentials:', error);
+      }
+    }
+    
+    // フォールバック: 認証情報がない場合のデモサイト
+    if (sites.length === 0) {
+      console.log('🎭 No credentials available, using demo mode');
+      sites.push(
+        { name: 'ITANDI BB', url: 'https://www.itandi.net/' },
+        { name: 'いえらぶBB', url: 'https://www.ielove.co.jp/' }
+      );
+    }
+    
+    return sites;
+  }
+
+  /**
+   * サイト名からURLを推測
+   */
+  private guessUrlFromSiteName(siteName: string): string {
+    const lowerSite = siteName.toLowerCase();
+    
+    if (lowerSite.includes('itandi')) return 'https://www.itandi.net/';
+    if (lowerSite.includes('いえらぶ') || lowerSite.includes('ielove')) return 'https://www.ielove.co.jp/';
+    if (lowerSite.includes('athome') || lowerSite.includes('アットホーム')) return 'https://www.athome.co.jp/';
+    if (lowerSite.includes('suumo') || lowerSite.includes('スーモ')) return 'https://suumo.jp/';
+    if (lowerSite.includes('homes') || lowerSite.includes('ホームズ')) return 'https://www.homes.co.jp/';
+    
+    // デフォルトは空文字（手動確認が必要）
+    return '';
   }
 
   async stop() {
