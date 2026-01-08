@@ -21,7 +21,7 @@ export default function LiveBrowserMirror({ onStateChange, extractedProperties }
 
   const [isConnected, setIsConnected] = useState(false);
   const wsRef = useRef<WebSocket | null>(null);
-  const reconnectTimeoutRef = useRef<NodeJS.Timeout>();
+  const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     connectWebSocket();
@@ -51,7 +51,8 @@ export default function LiveBrowserMirror({ onStateChange, extractedProperties }
           const message: WebSocketMessage = JSON.parse(event.data);
           
           if (message.type === 'browser_state') {
-            const newState = { ...state, ...message.data };
+            const browserData = message.data as BrowserMirrorState;
+            const newState = { ...state, ...browserData };
             setState(newState);
             onStateChange?.(newState);
           }

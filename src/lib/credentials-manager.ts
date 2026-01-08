@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as csvParser from 'csv-parser';
+import csvParser from 'csv-parser';
 import { SiteCredential, CredentialsData, CredentialsManagerConfig } from '@/types/credentials';
 
 export class CredentialsManager {
