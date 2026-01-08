@@ -34,9 +34,10 @@ export default function SystemStatus({ extractedProperties, websocketConnected =
     try {
       // Check credentials
       const credResponse = await fetch('/api/credentials');
-      const credentialsLoaded = credResponse.ok;
+      const credData = await credResponse.json();
+      const credentialsLoaded = credResponse.ok || credData.success;
       
-      console.log('🔍 Credentials API response:', credResponse.status, credResponse.ok);
+      console.log('🔍 Credentials API response:', credResponse.status, credData);
 
       // Check PDF analysis (Anthropic)
       const pdfResponse = await fetch('/api/pdf-analysis?action=test');
