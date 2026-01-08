@@ -1,65 +1,133 @@
-import Image from "next/image";
+'use client';
+
+import { useState } from 'react';
+import LiveBrowserMirror from '@/components/live-browser-mirror';
+import { BrowserMirrorState } from '@/types/browser-mirror';
 
 export default function Home() {
+  const [systemState, setSystemState] = useState<BrowserMirrorState | null>(null);
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-blue-900 to-purple-900">
+      {/* Header */}
+      <header className="bg-black/20 backdrop-blur-lg border-b border-white/10">
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="text-3xl">🏠</div>
+              <div>
+                <h1 className="text-2xl font-bold text-white">AI物確システム</h1>
+                <p className="text-gray-300 text-sm">不動産仲介業務完全自動化プラットフォーム</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center space-x-4">
+              {systemState && (
+                <div className="text-right">
+                  <p className="text-white font-medium">System Status</p>
+                  <p className="text-sm text-gray-300 capitalize">{systemState.status}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="container mx-auto px-6 py-8">
+        {/* Feature Introduction */}
+        <div className="mb-8 text-center">
+          <h2 className="text-4xl font-bold text-white mb-4">
+            🤖 AI エージェント・ライブビューア
+          </h2>
+          <p className="text-xl text-gray-300 max-w-3xl mx-auto">
+            AIが不動産サイトを巡回して物確作業を実行する様子を、
+            <span className="text-blue-400 font-semibold">リアルタイムで可視化</span>します。
+            まるで機械式時計の精密な動きを見るように、
+            <span className="text-purple-400 font-semibold">AIの思考プロセス</span>を透明化します。
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+        {/* Key Features */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6 border border-white/20">
+            <div className="text-3xl mb-3">🔍</div>
+            <h3 className="text-lg font-semibold text-white mb-2">スケルトン・ビュー</h3>
+            <p className="text-gray-300 text-sm">
+              AIの内部処理を透明化。ブラウザ操作、思考プロセス、判断基準まで全て可視化
+            </p>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6 border border-white/20">
+            <div className="text-3xl mb-3">⚡</div>
+            <h3 className="text-lg font-semibold text-white mb-2">リアルタイム実行</h3>
+            <p className="text-gray-300 text-sm">
+              複数サイトを並行処理。WebSocket通信で遅延なくライブストリーミング配信
+            </p>
+          </div>
+          
+          <div className="bg-white/10 backdrop-blur-lg rounded-lg p-6 border border-white/20">
+            <div className="text-3xl mb-3">🎯</div>
+            <h3 className="text-lg font-semibold text-white mb-2">完全自動化</h3>
+            <p className="text-gray-300 text-sm">
+              PDF解析から結果出力まで。人間の介入なしで物確業務を完全自動実行
+            </p>
+          </div>
+        </div>
+
+        {/* Live Browser Mirror */}
+        <div className="bg-white/10 backdrop-blur-lg rounded-lg border border-white/20 p-6">
+          <LiveBrowserMirror onStateChange={setSystemState} />
+        </div>
+
+        {/* Demo Instructions */}
+        <div className="mt-8 bg-yellow-500/10 border border-yellow-400/30 rounded-lg p-6">
+          <div className="flex items-center space-x-3 mb-3">
+            <div className="text-2xl">💡</div>
+            <h3 className="text-lg font-semibold text-white">デモの実行方法</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-white mb-2">1. システム起動</h4>
+              <p className="text-gray-300 text-sm mb-3">
+                「Start Demo」ボタンをクリックして、AIエージェントを起動します。
+                ブラウザが自動で開き、物確作業を開始します。
+              </p>
+            </div>
+            <div>
+              <h4 className="font-medium text-white mb-2">2. ライブ監視</h4>
+              <p className="text-gray-300 text-sm mb-3">
+                中央の画面でAIの操作をリアルタイム監視。
+                右側パネルでAIの思考プロセスを確認できます。
+              </p>
+            </div>
+          </div>
+          
+          <div className="mt-4 p-4 bg-gray-900/50 rounded-lg">
+            <h4 className="font-medium text-white mb-2">📋 デモ処理内容</h4>
+            <ul className="text-gray-300 text-sm space-y-1">
+              <li>• サンプル物件: 「アークヒルズ仙石山森タワー 3A」</li>
+              <li>• 対象サイト: ITANDI BB、いえらぶBB</li>
+              <li>• 処理時間: 約2-3分（サイトアクセス + 検索 + 結果分析）</li>
+              <li>• 出力: 空室状況、最終更新日時、情報ソース</li>
+            </ul>
+          </div>
         </div>
       </main>
+
+      {/* Footer */}
+      <footer className="mt-12 bg-black/20 backdrop-blur-lg border-t border-white/10">
+        <div className="container mx-auto px-6 py-6">
+          <div className="text-center">
+            <p className="text-gray-400 text-sm">
+              🤖 AI物確システム - 次世代不動産テクノロジー
+            </p>
+            <p className="text-gray-500 text-xs mt-2">
+              Playwright + Anthropic Claude + Next.js で実現するスケルトン・デモシステム
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
