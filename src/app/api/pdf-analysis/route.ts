@@ -133,6 +133,8 @@ export async function GET(request: NextRequest) {
       // 本番環境ではデモモードとして動作
       const effectivelyConfigured = hasApiKey || isProduction;
       
+      console.log('🔍 API Key check:', { hasApiKey, isProduction, effectivelyConfigured });
+      
       return NextResponse.json({
         success: true,
         data: {
@@ -140,7 +142,8 @@ export async function GET(request: NextRequest) {
           uploadsDir: UPLOAD_DIR,
           uploadsExist: existsSync(UPLOAD_DIR),
           environment: isProduction ? 'production' : 'development',
-          demoMode: isProduction && !hasApiKey
+          demoMode: isProduction && !hasApiKey,
+          actualApiKey: hasApiKey // デバッグ用
         },
         message: effectivelyConfigured 
           ? (isProduction && !hasApiKey ? 'PDF analyzer ready (demo mode)' : 'PDF analyzer ready')
