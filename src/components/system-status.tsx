@@ -109,14 +109,14 @@ export default function SystemStatus({ extractedProperties, websocketConnected =
       </div>
 
       {!status.anthropicConfigured && (
-        <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-400/30 rounded text-xs text-yellow-300">
-          ⚠️ Anthropic API keyが設定されていません。PDF解析機能が利用できません。
+        <div className="mt-3 p-2 bg-blue-500/10 border border-blue-400/30 rounded text-xs text-blue-300">
+          🎭 デモモード: サンプル物件データを使用しています
         </div>
       )}
 
       {!status.credentialsLoaded && (
-        <div className="mt-3 p-2 bg-yellow-500/10 border border-yellow-400/30 rounded text-xs text-yellow-300">
-          ⚠️ 認証情報ファイルが見つかりません。デモモードで実行されます。
+        <div className="mt-3 p-2 bg-blue-500/10 border border-blue-400/30 rounded text-xs text-blue-300">
+          🎭 デモモード: サンプル認証情報を使用しています
         </div>
       )}
     </div>

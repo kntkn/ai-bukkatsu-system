@@ -5,6 +5,22 @@ let credentialsManager: CredentialsManager | null = null;
 
 export async function GET(request: NextRequest) {
   try {
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+    
+    // 本番環境ではデモモードとして動作
+    if (isProduction) {
+      return NextResponse.json({ 
+        success: true,
+        data: [
+          { siteName: 'ITANDI BB', url: 'https://bb.itandi.net', username: 'demo_user', notes: 'デモモード' },
+          { siteName: 'いえらぶBB', url: 'https://bb.ielove.co.jp', username: 'demo_user', notes: 'デモモード' }
+        ],
+        count: 2,
+        demoMode: true,
+        message: 'Running in production demo mode'
+      });
+    }
+    
     // 初回アクセス時に認証情報ファイルを自動検出
     if (!credentialsManager) {
       credentialsManager = await CredentialsManager.autoDetectCredentialsFile();

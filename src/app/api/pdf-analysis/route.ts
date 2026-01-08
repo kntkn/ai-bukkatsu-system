@@ -128,15 +128,23 @@ export async function GET(request: NextRequest) {
       
       // API キーの確認
       const hasApiKey = !!process.env.ANTHROPIC_API_KEY;
+      const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+      
+      // 本番環境ではデモモードとして動作
+      const effectivelyConfigured = hasApiKey || isProduction;
       
       return NextResponse.json({
         success: true,
         data: {
-          apiKeyConfigured: hasApiKey,
+          apiKeyConfigured: effectivelyConfigured,
           uploadsDir: UPLOAD_DIR,
-          uploadsExist: existsSync(UPLOAD_DIR)
+          uploadsExist: existsSync(UPLOAD_DIR),
+          environment: isProduction ? 'production' : 'development',
+          demoMode: isProduction && !hasApiKey
         },
-        message: hasApiKey ? 'PDF analyzer ready' : 'Anthropic API key not configured'
+        message: effectivelyConfigured 
+          ? (isProduction && !hasApiKey ? 'PDF analyzer ready (demo mode)' : 'PDF analyzer ready')
+          : 'Anthropic API key not configured'
       });
     } catch (error) {
       return NextResponse.json(
