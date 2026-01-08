@@ -13,9 +13,15 @@ export class CredentialsManager {
   }
 
   /**
-   * デスクトップフォルダから認証情報ファイルを自動検出
+   * デスクトップフォルダから認証情報ファイルを自動検出（本番環境対応）
    */
   static async autoDetectCredentialsFile(): Promise<CredentialsManager | null> {
+    // 本番環境（Vercel）では認証情報ファイルは利用できないため、nullを返す
+    if (process.env.NODE_ENV === 'production' || process.env.VERCEL) {
+      console.log('📁 Production environment detected - using demo mode');
+      return null;
+    }
+
     const desktopPath = path.join(process.env.HOME || '', 'Desktop');
     
     // 検索対象のファイルパターン
@@ -47,6 +53,7 @@ export class CredentialsManager {
       console.error('Error scanning desktop for credentials:', error);
     }
 
+    console.log('📁 No credentials file found, will use demo mode');
     return null;
   }
 
