@@ -17,6 +17,55 @@ async function ensureUploadDir() {
 
 export async function POST(request: NextRequest) {
   try {
+    // 本番環境（Vercel）ではファイルシステムへの書き込みが制限されているため、デモデータを返す
+    const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+    
+    if (isProduction) {
+      console.log('🎭 Production mode: Using demo data for PDF analysis');
+      
+      // デモ用のサンプル物件データ
+      const demoProperties = [
+        {
+          propertyName: 'アークヒルズ仙石山森タワー',
+          roomNumber: '3A',
+          address: '東京都港区六本木1-9-10',
+          managementCompany: '森ビル株式会社',
+          floorPlan: '2LDK',
+          rent: '45万円',
+          deposit: '90万円',
+          keyMoney: '45万円',
+          notes: 'サンプルデータ（デモモード）'
+        },
+        {
+          propertyName: 'パークコート赤坂檜町ザタワー',
+          roomNumber: '15B',
+          address: '東京都港区赤坂9-6-35',
+          managementCompany: '三井不動産レジデンシャル',
+          floorPlan: '3LDK',
+          rent: '65万円',
+          deposit: '130万円', 
+          keyMoney: '65万円',
+          notes: 'サンプルデータ（デモモード）'
+        }
+      ];
+
+      return NextResponse.json({
+        success: true,
+        data: {
+          properties: demoProperties,
+          summary: {
+            totalFiles: 1,
+            totalPages: 1,
+            totalProperties: demoProperties.length,
+            processedFiles: [{ id: 'demo-1', name: 'sample.pdf' }]
+          },
+          demoMode: true
+        },
+        message: `${demoProperties.length}件の物件情報を抽出しました（デモモード）`
+      });
+    }
+
+    // ローカル開発環境での処理
     await ensureUploadDir();
     
     const formData = await request.formData();

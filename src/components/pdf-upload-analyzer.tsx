@@ -139,6 +139,12 @@ export default function PdfUploadAnalyzer({ onAnalysisComplete, onError }: PdfUp
           不動産マイソク（PDF）をアップロードすると、AIが自動的に物件情報を抽出します。
           複数ファイルの一括アップロードに対応しています。
         </p>
+        {/* 本番環境での説明 */}
+        {(process.env.NODE_ENV === 'production' || typeof window !== 'undefined' && window.location.hostname.includes('vercel.app')) && (
+          <div className="mt-2 p-2 bg-blue-50 border border-blue-200 rounded text-xs text-blue-800">
+            🎭 <strong>デモモード:</strong> 本番環境では実際のPDF解析の代わりにサンプル物件データを表示します
+          </div>
+        )}
       </div>
 
       {/* File Upload Area */}
